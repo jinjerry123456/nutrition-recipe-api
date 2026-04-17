@@ -1,40 +1,30 @@
-from pydantic import BaseModel, Field
+# app/schemas.py
+from pydantic import BaseModel
+from typing import List, Optional
 
+# --- 菜品 (MenuItem) 的序列化格式 ---
+class MenuItemBase(BaseModel):
+    name: str
+    serve_size: str
+    energy_kcal: float
+    protein_g: float
+    total_fat_g: float
+    total_carbs_g: float
 
-class RecipeBase(BaseModel):
-    name: str = Field(min_length=2, max_length=120)
-    cuisine: str = Field(min_length=2, max_length=80)
-    ingredients: str = Field(min_length=5, description="Comma-separated ingredients")
-    calories: float = Field(gt=0, le=3000)
-    protein_g: float = Field(ge=0, le=500)
-    carbs_g: float = Field(ge=0, le=500)
-    fat_g: float = Field(ge=0, le=300)
-
-
-class RecipeCreate(RecipeBase):
-    pass
-
-
-class RecipeUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=2, max_length=120)
-    cuisine: str | None = Field(default=None, min_length=2, max_length=80)
-    ingredients: str | None = Field(default=None, min_length=5)
-    calories: float | None = Field(default=None, gt=0, le=3000)
-    protein_g: float | None = Field(default=None, ge=0, le=500)
-    carbs_g: float | None = Field(default=None, ge=0, le=500)
-    fat_g: float | None = Field(default=None, ge=0, le=300)
-
-
-class RecipeRead(RecipeBase):
+class MenuItemResponse(MenuItemBase):
     id: int
+    category_id: int
+
+    class Config:
+        from_attributes = True  # 允许直接读取数据库模型
+
+# --- 分类 (Category) 的序列化格式 ---
+class CategoryBase(BaseModel):
+    name: str
+
+class CategoryResponse(CategoryBase):
+    id: int
+    # 返回分类时，可选择性地不嵌套所有菜品，或者嵌套（这里我们选择简单的）
 
     class Config:
         from_attributes = True
-
-
-class NutritionSummary(BaseModel):
-    total_recipes: int
-    avg_calories: float
-    avg_protein_g: float
-    avg_carbs_g: float
-    avg_fat_g: float
