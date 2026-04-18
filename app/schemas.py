@@ -16,7 +16,7 @@ class MenuItemResponse(MenuItemBase):
     category_id: int
 
     class Config:
-        from_attributes = True  # 允许直接读取数据库模型
+        from_attributes = True
 
 # --- 分类 (Category) 的序列化格式 ---
 class CategoryBase(BaseModel):
@@ -24,7 +24,37 @@ class CategoryBase(BaseModel):
 
 class CategoryResponse(CategoryBase):
     id: int
-    # 返回分类时，可选择性地不嵌套所有菜品，或者嵌套（这里我们选择简单的）
+
+    class Config:
+        from_attributes = True
+
+# --- 套餐条目 (ComboItem) ---
+class ComboItemCreate(BaseModel):
+    item_id: int
+    quantity: int = 1
+
+class ComboItemResponse(BaseModel):
+    menu_item: MenuItemResponse
+    quantity: int
+
+    class Config:
+        from_attributes = True
+
+# --- 套餐 (Combo) ---
+class ComboBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class ComboCreate(ComboBase):
+    items: List[ComboItemCreate] # 创建时传入菜品 ID 列表
+
+class ComboResponse(ComboBase):
+    id: int
+    items: List[ComboItemResponse]
+    
+    # 满分亮点：自动计算总营养
+    total_calories: float = 0.0
+    total_protein: float = 0.0
 
     class Config:
         from_attributes = True
