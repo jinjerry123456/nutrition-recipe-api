@@ -4,13 +4,15 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 from dotenv import load_dotenv
 
-# 加载环境变量（你需要建一个 .env 文件把数据库密码存起来，别传到 GitHub 上）
 load_dotenv()
 
-# 这里暂时用本地的 SQLite 数据库方便你快速测试，之后部署 Render 时只需改这个 URL
+# 获取环境变量中的数据库 URL，如果没有则默认使用本地 SQLite
+# Render 提供的 Postgres URL 通常以 postgres:// 开头，但在 SQLAlchemy 中需要换成 postgresql://
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mcdonalds_nutrition.db")
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# 如果使用的是 SQLite，需要添加 check_same_thread=False
+# 如果是本地 SQLite，需要特定的 connect_args，否则留空
 connect_args = {"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
@@ -18,7 +20,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# 获取数据库会话的依赖函数
 def get_db():
     db = SessionLocal()
     try:
