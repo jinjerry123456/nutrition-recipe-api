@@ -1,10 +1,14 @@
 # app/main.py
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List
 
 from app import models, schemas
 from app.database import engine, get_db
+
+
+
 
 app = FastAPI(
     title="McDonald's Nutrition API",
@@ -12,9 +16,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def read_root():
-    return {"message": "欢迎来到麦当劳营养 API！请访问 http://127.0.0.1:8000/docs 查看 API 文档。"}
+    return RedirectResponse(url="/docs")
 
 # 接口 1: 获取所有分类
 @app.get("/categories", response_model=List[schemas.CategoryResponse], tags=["Categories"])
