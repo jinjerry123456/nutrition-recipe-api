@@ -1,5 +1,17 @@
 venv/
+.venv/
 __pycache__/
+.pytest_cache/
+.DS_Store
+
+# local secrets
 .env
+
+# runtime artifacts (regenerate via seed.py)
+*.db
+
+# keep dataset in git for reproducible seeding
+# (do not ignore dataset/)
+
+# optional local scratch
 data/
-dataset/
