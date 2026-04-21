@@ -20,7 +20,7 @@ This repository is structured to support all required submission artifacts:
 - API documentation PDF: [`document/API Documentation.pdf`](document/API%20Documentation.pdf)
 - Technical report PDF (max 5 pages): [`document/Technical Report.pdf`](document/Technical%20Report.pdf)
 - Presentation slides (PPTX): [`document/slide.pptx`](document/slide.pptx)
-- GenAI declaration and exported logs appendix (inside report appendix or `docs/appendix/`)
+- GenAI declaration and exported logs appendix (inside report appendix, or add files under `document/`)
 
 Links required for submission:
 - GitHub repository: `https://github.com/jinjerry123456/nutrition-recipe-api`

@@ -10,9 +10,6 @@ __pycache__/
 # runtime artifacts (regenerate via seed.py)
 *.db
 
-# submission source files (PDF is the deliverable)
-*.docx
-
 # keep dataset in git for reproducible seeding
 # (do not ignore dataset/)
 
