@@ -4,6 +4,10 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 
+# Microsoft Office temporary/lock files
+~$*
+.~*
+
 # local secrets
 .env
 
