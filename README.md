@@ -17,12 +17,14 @@ This repository is structured to support all required submission artifacts:
 
 - Public source code repository with clear commit history
 - Setup and usage guide (`README.md`)
-- API documentation PDF (add your final file path): `docs/API_Documentation.pdf`
-- Technical report PDF (max 5 pages): `docs/Technical_Report.pdf`
-- Presentation slides (PPTX or external link): `docs/Presentation_Slides.pptx`
+- API documentation PDF: [`document/API Documentation.pdf`](document/API%20Documentation.pdf)
+- Technical report PDF (max 5 pages): [`document/Technical Report.pdf`](document/Technical%20Report.pdf)
+- Presentation slides (PPTX): [`document/slide.pptx`](document/slide.pptx)
 - GenAI declaration and exported logs appendix (inside report appendix or `docs/appendix/`)
 
-> Update the file paths above once your PDFs/PPTX are exported.
+Links required for submission:
+- GitHub repository: `https://github.com/jinjerry123456/nutrition-recipe-api`
+- Live deployment (Render): `https://mcdonalds-api-jhd9.onrender.com`
 
 ---
 
@@ -236,8 +238,8 @@ In your technical report, include:
 - [ ] Public GitHub repository with visible and consistent commit history
 - [ ] Fully runnable code that matches the oral demo version
 - [ ] `README.md` complete and up to date
-- [ ] `docs/API_Documentation.pdf` added and linked
-- [ ] `docs/Technical_Report.pdf` added (max 5 pages, includes GenAI declaration)
-- [ ] `docs/Presentation_Slides.pptx` added or linked
+- [ ] `document/API Documentation.pdf` added and linked
+- [ ] `document/Technical Report.pdf` added (max 5 pages, includes GenAI declaration)
+- [ ] `document/slide.pptx` added or linked
 - [ ] All references (dataset, libraries, tutorials) cited in report/slides
 - [ ] Oral demo rehearsal completed (5-minute demo + 5-minute Q&A)
