@@ -1,33 +1,57 @@
-# Nutrition & Recipe Analytics API (Coursework)
+# Nutrition & Recipe Analytics API
 
-一个面向课程作业的高质量后端 API 项目，基于 FastAPI + SQLAlchemy，提供：
-- 菜品与分类查询
-- 套餐（Combo）完整 CRUD
-- JWT 登录鉴权（Bearer Token）
-- 营养分析与创意 analytics 端点
-- 自动化测试（核心流程 + 边界场景）
+RESTful API coursework project for `XJCO3011 Web Services and Web Data`, built with FastAPI and SQLAlchemy.
 
----
-
-## 1. Project Overview
-
-本项目围绕“营养与食谱分析”主题实现 RESTful API，核心目标：
-- 展示可维护的后端工程结构与数据库设计能力
-- 展示完整 CRUD、认证、校验、错误处理
-- 展示可解释、可演示的分析能力（protein density、分类统计）
-
-技术栈：
-- FastAPI（高性能、自动 OpenAPI 文档）
-- SQLAlchemy ORM（关系建模与数据访问）
-- SQLite / PostgreSQL（开发与部署兼容）
-- JWT（`python-jose`）+ 密码哈希（`passlib`）
-- Pytest（自动化测试）
+This project demonstrates:
+- Full CRUD for a core resource (`Combo`)
+- JWT authentication for protected operations
+- Validation and robust error handling
+- Creative analytics endpoints over nutrition data
+- Automated tests for core and edge scenarios
 
 ---
 
-## 2. Quick Start
+## 1) Coursework Deliverables
 
-### 2.1 安装依赖
+This repository is structured to support all required submission artifacts:
+
+- Public source code repository with clear commit history
+- Setup and usage guide (`README.md`)
+- API documentation PDF (add your final file path): `docs/API_Documentation.pdf`
+- Technical report PDF (max 5 pages): `docs/Technical_Report.pdf`
+- Presentation slides (PPTX or external link): `docs/Presentation_Slides.pptx`
+- GenAI declaration and exported logs appendix (inside report appendix or `docs/appendix/`)
+
+> Update the file paths above once your PDFs/PPTX are exported.
+
+---
+
+## 2) Project Scope
+
+### Domain
+Nutrition and recipe analytics using the India McDonald's nutrition dataset.
+
+### Core design goals
+- Build a data-driven API with SQL-backed persistence
+- Keep the architecture easy to justify in oral examination
+- Show independent engineering decisions beyond minimum pass requirements
+
+### Technology stack
+- **FastAPI**: API framework + automatic OpenAPI docs
+- **SQLAlchemy**: relational data modeling and ORM querying
+- **SQLite / PostgreSQL**: local and production database compatibility
+- **JWT (`python-jose`) + password hashing (`passlib`)**: authenticated write operations
+- **Pytest + TestClient**: automated API verification
+
+---
+
+## 3) Quick Start
+
+### 3.1 Prerequisites
+- Python 3.10+
+- `pip`
+
+### 3.2 Installation
 
 ```bash
 python3 -m venv .venv
@@ -35,9 +59,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2.2 配置环境变量
+### 3.3 Environment variables
 
-创建 `.env`（示例）：
+Create `.env` in project root:
 
 ```env
 DATABASE_URL=sqlite:///./mcdonalds_nutrition.db
@@ -47,25 +71,27 @@ DEMO_USERNAME=student
 DEMO_PASSWORD=coursework123
 ```
 
-> 生产环境请务必修改 `JWT_SECRET_KEY` 和演示账号密码。
-
-### 2.3 启动服务
+### 3.4 Run the API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-打开：
+Open:
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
 
+### 3.5 Seed dataset (optional but recommended)
+
+```bash
+python seed.py
+```
+
 ---
 
-## 3. Authentication (JWT)
+## 4) Authentication Workflow (JWT)
 
-### 3.1 获取 Token
-
-请求：
+### Step 1: request access token
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/auth/token" \
@@ -73,88 +99,80 @@ curl -X POST "http://127.0.0.1:8000/auth/token" \
   -d "username=student&password=coursework123"
 ```
 
-响应示例：
-
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
-}
-```
-
-### 3.2 访问受保护端点
+### Step 2: call protected endpoints with Bearer token
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/combos" \
   -H "Authorization: Bearer <your_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Gym Combo",
-    "description": "High protein lunch",
-    "items": [{"item_id": 1, "quantity": 2}]
+    "name":"Gym Combo",
+    "description":"High-protein lunch set",
+    "items":[{"item_id":1,"quantity":2}]
   }'
 ```
 
 ---
 
-## 4. API Endpoints
+## 5) API Surface
 
-### 4.1 Auth
-- `POST /auth/token`：登录并获取 JWT
-- `GET /auth/me`：获取当前用户信息（受保护）
+### Auth
+- `POST /auth/token` - login and obtain JWT
+- `GET /auth/me` - inspect current authenticated user
 
-### 4.2 Categories / Menu Items
+### Browsing and filtering
 - `GET /categories`
 - `GET /categories/{category_id}/items`
 - `GET /items`
 - `GET /items/search?max_calories=500&min_protein=15`
 
-### 4.3 Core CRUD: Combos
+### Core CRUD (`Combo`)
 - `GET /combos`
 - `GET /combos/{combo_id}`
-- `POST /combos`（受保护）
-- `PUT /combos/{combo_id}`（受保护）
-- `DELETE /combos/{combo_id}`（受保护）
+- `POST /combos` (protected)
+- `PUT /combos/{combo_id}` (protected)
+- `DELETE /combos/{combo_id}` (protected)
 
-### 4.4 Analytics (Creativity)
-- `GET /analytics/category-summary`  
-  输出每个分类的平均热量、平均蛋白、条目数量
-- `GET /analytics/combo-scoreboard`  
-  按 `protein_density = total_protein / total_calories` 进行套餐排行榜
+### Analytics
+- `GET /analytics/category-summary`
+- `GET /analytics/combo-scoreboard`
 
 ---
 
-## 5. Validation & Error Handling
+## 6) Validation and Error Handling
 
-项目包含以下质量保障：
-- 输入校验：字段长度、非负值、最小数量、分页参数上下界
-- 业务校验：套餐重名冲突（409）、无效 item 引用（404）
-- 鉴权错误：未认证/无效 token（401）
-- 资源错误：不存在资源（404）
-- 统一错误响应（包含 `detail` 与 `path`）
-- 数据库异常和全局异常兜底处理（500）
+Implemented controls include:
+- Request schema validation (length, range, required fields)
+- Business constraints (duplicate combo name conflict, missing item references)
+- Auth failures with standards-based status codes
+- Resource-not-found handling
+- Global exception handlers for database and unexpected runtime failures
+
+Typical status codes used:
+- `200`, `201`, `204`
+- `401`, `403`, `404`, `409`, `422`, `500`
 
 ---
 
-## 6. Testing
+## 7) Testing
 
-运行测试：
+Run all tests:
 
 ```bash
 pytest -q
 ```
 
-当前覆盖场景包括：
-- JWT 登录成功与失败
-- 受保护端点的未认证访问
-- Combo 完整 CRUD 流程
-- 非法 item_id（404）
-- 非法数量参数（422）
-- analytics 端点正确性与排序逻辑
+Covered scenarios:
+- JWT login success and failure
+- Unauthorized access to protected CRUD endpoints
+- End-to-end Combo CRUD workflow
+- Invalid item references (`404`)
+- Validation edge case (`422` for invalid quantity)
+- Analytics endpoint correctness and ordering
 
 ---
 
-## 7. Suggested Repository Structure
+## 8) Repository Structure
 
 ```text
 nutrition-recipe-api/
@@ -163,66 +181,63 @@ nutrition-recipe-api/
     main.py
     models.py
     schemas.py
+  dataset/
+    India_Menu.csv
   tests/
     conftest.py
     test_api.py
+  seed.py
   requirements.txt
   README.md
 ```
 
 ---
 
-## 8. Deployment Notes
+## 9) Deployment Notes
 
-- 本地开发：SQLite（`sqlite:///./mcdonalds_nutrition.db`）
-- 线上部署：建议 PostgreSQL（通过 `DATABASE_URL`）
-- Render / Railway / PythonAnywhere 部署时：
-  - 设置环境变量（JWT、数据库、演示账户）
-  - 确保线上版本与口试演示一致
+- Local development uses SQLite by default.
+- Production deployment should use PostgreSQL via `DATABASE_URL`.
+- Supported hosting options: Render, Railway, PythonAnywhere, or equivalent.
+- Ensure deployed version exactly matches the version demonstrated in oral exam.
 
 ---
 
-## 9. Marking Rubric Mapping (高分对照)
+## 10) Marking Rubric Mapping
 
 ### Content (75%)
-- **API Functionality & Implementation**  
-  已实现核心资源完整 CRUD + 多个查询与分析端点
-- **Code Quality & Architecture**  
-  使用 ORM 关系建模、分层 schema、统一异常处理与鉴权依赖
-- **Documentation**  
-  Swagger 自动文档 + README 可执行说明（建议另补 API PDF 与技术报告 PDF）
-- **Version Control & Deployment**  
-  建议保持小步提交、语义化 commit message，并提供线上演示地址
-- **Testing & Error Handling**  
-  已有 pytest 自动化测试与边界场景
-- **Creativity & GenAI**  
-  通过组合营养评分与分类统计体现分析创造性（报告中需写明 GenAI 使用方法）
+- **API functionality & implementation**: complete SQL-backed CRUD + analytics routes
+- **Code quality & architecture**: relational model design, schema-based validation, reusable auth/error layers
+- **Documentation**: executable README + OpenAPI docs + PDF documentation artifact
+- **Version control & deployment**: structured commits and deployment-ready config
+- **Testing & error handling**: automated tests with core and edge-case checks
+- **Creativity & GenAI usage**: nutrition scoring logic + documented AI-supported development workflow
 
 ### Presentation (15%)
-- 建议展示：系统架构图、ER 图、Swagger 截图、测试结果截图、部署链接、commit 历史
+- Include architecture diagram, ER diagram, endpoint demo flow, test evidence, and deployment evidence.
 
 ### Q&A (10%)
-- 准备回答：JWT 选择理由、模型关系设计、错误码规范、测试策略、可扩展性方案
+- Be ready to justify design trade-offs, JWT flow, status code choices, analytics formulation, and extension plan.
 
 ---
 
-## 10. GenAI Declaration (for Technical Report)
+## 11) GenAI Declaration Guidance (for report appendix)
 
-你可以在技术报告中包含如下结构：
-- 使用工具：例如 ChatGPT / Copilot
-- 使用目的：需求拆解、接口设计建议、测试用例补全、文档润色
-- 人工验证：所有 AI 建议均经本地运行、测试和人工审查
-- 反思：AI 提升开发效率，但关键设计与最终取舍由作者完成
-
-并附上部分对话导出日志作为附录材料。
+In your technical report, include:
+- Tools used (e.g., ChatGPT, Copilot)
+- Purpose per tool (planning, debugging, test ideation, language polishing)
+- Verification method (manual review + test execution before accepting AI output)
+- Reflection on limitations and independent decision-making
+- Exported conversation logs as appendix evidence
 
 ---
 
-## 11. Next Submission Checklist
+## 12) Final Submission Checklist
 
-- [ ] GitHub 仓库公开，commit 历史清晰
-- [ ] README 完整（本文件）
-- [ ] API 文档导出为 PDF 并放入仓库
-- [ ] Technical Report（含 GenAI 声明）完成并转 PDF
-- [ ] Slides 完成（5 分钟版本）
-- [ ] 口试 demo 跑通（登录 + CRUD + analytics + 测试截图）
+- [ ] Public GitHub repository with visible and consistent commit history
+- [ ] Fully runnable code that matches the oral demo version
+- [ ] `README.md` complete and up to date
+- [ ] `docs/API_Documentation.pdf` added and linked
+- [ ] `docs/Technical_Report.pdf` added (max 5 pages, includes GenAI declaration)
+- [ ] `docs/Presentation_Slides.pptx` added or linked
+- [ ] All references (dataset, libraries, tutorials) cited in report/slides
+- [ ] Oral demo rehearsal completed (5-minute demo + 5-minute Q&A)

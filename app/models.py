@@ -3,26 +3,26 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
-# 1. 分类表 (Category) - 一对多关联
+# Category is the parent dimension for menu browsing and aggregation.
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True) # 例如：Regular Menu, Breakfast 等
+    name = Column(String, unique=True, index=True)  # Example values: Regular Menu, Breakfast.
 
-    # 建立与菜品的关联
+    # One category -> many menu items, enabling category-level analytics.
     items = relationship("MenuItem", back_populates="category")
 
-# 2. 菜品核心表 (MenuItem)
+# MenuItem is the factual nutrition entity used by search and combo scoring.
 class MenuItem(Base):
     __tablename__ = "menu_items"
 
     id = Column(Integer, primary_key=True, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id")) # 外键关联分类
+    category_id = Column(Integer, ForeignKey("categories.id"))  # Referential integrity to Category.
     name = Column(String, index=True)
     serve_size = Column(String)
-    
-    # 营养成分数据
+
+    # Nutrition fields are intentionally atomic so we can extend analytics safely later.
     energy_kcal = Column(Float, default=0.0)
     protein_g = Column(Float, default=0.0)
     total_fat_g = Column(Float, default=0.0)
@@ -34,28 +34,29 @@ class MenuItem(Base):
     added_sugars_g = Column(Float, default=0.0)
     sodium_mg = Column(Float, default=0.0)
 
-    # 关联关系
+    # Relationship hooks for read joins and combo calculations.
     category = relationship("Category", back_populates="items")
     combo_links = relationship("ComboItem", back_populates="menu_item")
 
-# 3. 套餐表 (Combo) - 满分亮点：让用户自己搭配套餐
+# Combo captures user-designed bundles, which is the core CRUD resource.
 class Combo(Base):
     __tablename__ = "combos"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True) # 例如："我的欺骗餐", "高蛋白增肌套餐"
+    name = Column(String, index=True)  # Example values: Cheat Day Combo, Lean Protein Set.
     description = Column(String, nullable=True)
 
+    # One combo -> many bridge rows for multi-item composition.
     items = relationship("ComboItem", back_populates="combo")
 
-# 4. 套餐-菜品关联表 (多对多中间表)
+# ComboItem is the bridge table that turns MenuItem into a many-to-many combo system.
 class ComboItem(Base):
     __tablename__ = "combo_items"
 
     id = Column(Integer, primary_key=True, index=True)
     combo_id = Column(Integer, ForeignKey("combos.id"))
     item_id = Column(Integer, ForeignKey("menu_items.id"))
-    quantity = Column(Integer, default=1) # 点了几个
+    quantity = Column(Integer, default=1)  # Quantity drives nutrition totals and ranking math.
 
     combo = relationship("Combo", back_populates="items")
     menu_item = relationship("MenuItem", back_populates="combo_links")

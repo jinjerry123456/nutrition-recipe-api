@@ -57,7 +57,7 @@ class ComboCreate(ComboBase):
     @classmethod
     def non_empty_items(cls, v: List[ComboItemCreate]) -> List[ComboItemCreate]:
         if not v:
-            raise ValueError("套餐至少包含一道菜品")
+            raise ValueError("A combo must include at least one menu item")
         return v
 
 

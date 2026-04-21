@@ -17,7 +17,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="McDonald's Nutrition API",
-    description="麦当劳营养与套餐分析 API，支持 CRUD、认证、筛选和分析。",
+    description="Nutrition and combo analytics API with CRUD, authentication, filtering, and insights.",
     version="2.0.0",
 )
 
@@ -31,7 +31,8 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 _demo_password_hash = pwd_context.hash(DEFAULT_DEMO_PASSWORD)
 
-# 为课程作业演示准备的最小用户存储，可在报告中说明后续可迁移为数据库用户表。
+# Lightweight demo identity store keeps auth workflow explicit for the viva demo;
+# migration path: replace with a persisted users table and role model.
 FAKE_USERS_DB = {
     DEFAULT_DEMO_USERNAME: {
         "username": DEFAULT_DEMO_USERNAME,
@@ -56,12 +57,14 @@ def authenticate_user(username: str, password: str) -> dict | None:
 
 
 def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
+    # Token expiry is explicit so examiners can see security behavior, not magic defaults.
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = {"sub": subject, "exp": expire}
     return jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+    # Single reusable gate for all protected routes keeps auth policy consistent.
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -87,6 +90,7 @@ def get_current_active_user(current_user: dict = Depends(get_current_user)) -> d
 
 
 def fetch_combo_or_404(combo_id: int, db: Session) -> models.Combo:
+    # Eager loading avoids N+1 queries when returning combo + linked menu items.
     combo = (
         db.query(models.Combo)
         .options(joinedload(models.Combo.items).joinedload(models.ComboItem.menu_item))
@@ -99,6 +103,7 @@ def fetch_combo_or_404(combo_id: int, db: Session) -> models.Combo:
 
 
 def build_combo_nutrition(combo: models.Combo) -> tuple[float, float]:
+    # Derived totals are computed at read-time to keep stored data normalized.
     total_calories = sum((entry.menu_item.energy_kcal or 0) * entry.quantity for entry in combo.items)
     total_protein = sum((entry.menu_item.protein_g or 0) * entry.quantity for entry in combo.items)
     return round(total_calories, 2), round(total_protein, 2)
@@ -205,13 +210,14 @@ def get_combo(combo_id: int, db: Session = Depends(get_db)):
     dependencies=[Depends(get_current_active_user)],
 )
 def create_combo(combo_in: schemas.ComboCreate, db: Session = Depends(get_db)):
+    # Unique combo names improve retrieval clarity and prevent ambiguous updates in demos.
     existing = db.query(models.Combo).filter(models.Combo.name == combo_in.name).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Combo name already exists")
 
     new_combo = models.Combo(name=combo_in.name, description=combo_in.description)
     db.add(new_combo)
-    db.flush()
+    db.flush()  # Flush first so we can safely reference new_combo.id in bridge rows.
 
     for entry in combo_in.items:
         item = db.query(models.MenuItem).filter(models.MenuItem.id == entry.item_id).first()
@@ -245,6 +251,7 @@ def update_combo(combo_id: int, combo_in: schemas.ComboUpdate, db: Session = Dep
         combo.description = payload["description"]
 
     if "items" in payload:
+        # Replace strategy keeps update semantics deterministic for oral demonstration.
         db.query(models.ComboItem).filter(models.ComboItem.combo_id == combo.id).delete()
         for entry in payload["items"]:
             item_id = entry["item_id"]
@@ -315,6 +322,7 @@ def combo_scoreboard(db: Session = Depends(get_db)):
     data: List[schemas.ComboAnalyticsSummary] = []
     for combo in combos:
         total_calories, total_protein = build_combo_nutrition(combo)
+        # Protein density gives a compact "quality per calorie" signal for creative analytics.
         density = round(total_protein / total_calories, 4) if total_calories > 0 else 0.0
         quantity_total = sum(entry.quantity for entry in combo.items)
         data.append(
